@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Win a Big Discount — Plinko Popup</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#1f1f1f;
+    display:flex;align-items:center;justify-content:center;
+    color:#111827;
+  }
+  .demo-hint{position:fixed;top:20px;left:0;right:0;text-align:center;color:#9ca3af;font-size:13px}
+  .demo-btn{
+    padding:12px 22px;border:0;border-radius:10px;background:#3fbf7f;color:#fff;
+    font-size:15px;font-weight:700;cursor:pointer
+  }
+
+  /* ---------- POPUP ---------- */
+  .pk-overlay{
+    position:fixed;inset:0;background:rgba(17,17,17,.6);
+    display:flex;align-items:center;justify-content:center;padding:16px;z-index:9999;
+    animation:pkFade .25s ease both;
+  }
+  .pk-overlay.hidden{display:none}
+  @keyframes pkFade{from{opacity:0}to{opacity:1}}
+
+  .pk-modal{
+    position:relative;width:100%;max-width:400px;background:#fff;border-radius:16px;
+    padding:28px 24px 18px;text-align:center;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+    animation:pkPop .3s cubic-bezier(.2,.9,.3,1.3) both;
+    max-height:96vh;overflow:auto;
+  }
+  @keyframes pkPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+
+  .pk-close{
+    position:absolute;top:12px;right:14px;width:30px;height:30px;border:0;background:transparent;
+    color:#9ca3af;font-size:20px;line-height:1;cursor:pointer;border-radius:8px
+  }
+  .pk-close:hover{background:#f3f4f6;color:#4b5563}
+
+  .pk-emoji{font-size:38px;line-height:1}
+  .pk-title{margin:14px 0 6px;font-size:27px;font-weight:800;letter-spacing:-.4px}
+  .pk-sub{margin:0 0 18px;font-size:14px;color:#8a919c}
+
+  .pk-input{
+    width:100%;padding:14px 16px;font-size:15px;color:#111827;
+    background:#f4f5f7;border:1px solid #e5e7eb;border-radius:10px;outline:none;margin-bottom:12px
+  }
+  .pk-input::placeholder{color:#9ca3af}
+  .pk-input:focus{border-color:#3fbf7f;background:#fff;box-shadow:0 0 0 3px rgba(63,191,127,.18)}
+  .pk-input.err{border-color:#ef4444;background:#fef2f2}
+
+  .pk-cta{
+    width:100%;padding:15px 16px;border:0;border-radius:10px;cursor:pointer;
+    background:#3fbf7f;color:#fff;font-size:17px;font-weight:700;
+    transition:background .15s, transform .1s
+  }
+  .pk-cta:hover{background:#35a86f}
+  .pk-cta:active{transform:translateY(1px)}
+  .pk-cta[disabled]{background:#b7e3cc;cursor:not-allowed}
+
+  .pk-error{color:#ef4444;font-size:12.5px;height:16px;margin:6px 0 0}
+
+  /* board */
+  .pk-board-wrap{margin:16px 0 10px;display:flex;justify-content:center}
+  canvas{display:block;max-width:100%}
+
+  .pk-slots{display:flex;gap:7px;justify-content:center;margin:2px auto 14px;width:280px;max-width:100%}
+  .pk-slot{
+    flex:1;padding:9px 0;border-radius:8px;background:#3fbf7f;color:#fff;
+    font-size:14px;font-weight:800;transition:transform .2s, box-shadow .2s, background .2s
+  }
+  .pk-slot.win{
+    background:#f0a713;transform:translateY(-4px) scale(1.08);
+    box-shadow:0 8px 18px rgba(240,167,19,.45)
+  }
+
+  .pk-legal{margin:0;font-size:11.5px;color:#b0b6bf;line-height:1.5}
+  .pk-legal a{color:#b0b6bf}
+
+  /* result */
+  .pk-result{animation:pkPop .35s cubic-bezier(.2,.9,.3,1.3) both}
+  .pk-win-big{font-size:44px;font-weight:900;color:#3fbf7f;letter-spacing:-1px;margin:6px 0 2px}
+  .pk-win-txt{margin:0 0 16px;font-size:15px;color:#6b7280}
+  .pk-code{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:2px dashed #3fbf7f;border-radius:10px;padding:12px 14px;background:#f2fbf6;margin-bottom:12px
+  }
+  .pk-code span{font-size:19px;font-weight:800;letter-spacing:2px;color:#1f7a52}
+  .pk-copy{border:0;background:#3fbf7f;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
+  .pk-copy:hover{background:#35a86f}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="demo-hint">Demo page — the popup below is the deliverable</div>
+<button class="demo-btn" onclick="PK.open()">Show popup</button>
+
+<!-- ============ POPUP ============ -->
+<div class="pk-overlay" id="pkOverlay">
+  <div class="pk-modal" role="dialog" aria-modal="true" aria-labelledby="pkTitle">
+    <button class="pk-close" id="pkClose" aria-label="Close">&times;</button>
+
+    <!-- STEP 1 -->
+    <div id="pkStep1">
+      <div class="pk-emoji">🎁</div>
+      <h2 class="pk-title" id="pkTitle">Win a Big Discount!</h2>
+      <p class="pk-sub">Enter your email for a chance to win a discount</p>
+
+      <input class="pk-input" id="pkEmail" type="email" placeholder="Enter your email" autocomplete="email">
+      <button class="pk-cta" id="pkDrop">Drop the Ball!</button>
+      <p class="pk-error" id="pkError"></p>
+    </div>
+
+    <!-- STEP 2 (result) -->
+    <div id="pkStep2" class="pk-result hidden">
+      <div class="pk-emoji">🎉</div>
+      <div class="pk-win-big" id="pkWinAmount">20% OFF</div>
+      <p class="pk-win-txt">Nice drop! Use your code at checkout.</p>
+      <div class="pk-code">
+        <span id="pkCode">SAVE20</span>
+        <button class="pk-copy" id="pkCopy">Copy</button>
+      </div>
+      <button class="pk-cta" id="pkShop">Continue shopping</button>
+      <p class="pk-error"></p>
+    </div>
+
+    <!-- BOARD (always visible) -->
+    <div class="pk-board-wrap">
+      <canvas id="pkBoard" width="300" height="290"></canvas>
+    </div>
+    <div class="pk-slots" id="pkSlots">
+      <div class="pk-slot">10%</div>
+      <div class="pk-slot">15%</div>
+      <div class="pk-slot">20%</div>
+      <div class="pk-slot">25%</div>
+    </div>
+
+    <p class="pk-legal">By entering your email, you agree to receive marketing emails.<br>Unsubscribe anytime.</p>
+  </div>
+</div>
+
+<script>
+const PK = (function(){
+  /* ---- config ---- */
+  const PRIZES  = ['10%','15%','20%','25%'];
+  const CODES   = ['SAVE10','SAVE15','SAVE20','SAVE25'];
+  const WEIGHTS = [40, 30, 20, 10];          // chance of each slot (left → right)
+  const SLOT_KS = [[0,1,2],[3,4],[5,6],[7,8,9]]; // paths that land in each slot
+
+  const ROWS=9, SX=30, SY=26, TOP=24, R=6.5;
+  const cvs = document.getElementById('pkBoard');
+  const ctx = cvs.getContext('2d');
+  const CX  = cvs.width/2;
+  const FLOOR = TOP + ROWS*SY + 12;
+
+  // hi-dpi
+  (function(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = cvs.width, h = cvs.height;
+    cvs.style.width = w+'px'; cvs.style.height = h+'px';
+    cvs.width = w*dpr; cvs.height = h*dpr; ctx.scale(dpr,dpr);
+  })();
+
+  const overlay = document.getElementById('pkOverlay');
+  const emailEl = document.getElementById('pkEmail');
+  const errEl   = document.getElementById('pkError');
+  const dropBtn = document.getElementById('pkDrop');
+  const slots   = [...document.querySelectorAll('.pk-slot')];
+  let ball = null, running = false;
+
+  function pegs(){
+    const out=[];
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<=r;c++){
+        out.push({x: CX + (c - r/2)*SX, y: TOP + r*SY});
+      }
+    }
+    return out;
+  }
+  const PEGS = pegs();
+
+  function draw(){
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    ctx.fillStyle = '#9fdcc0';
+    PEGS.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); });
+    if(ball){
+      ctx.save();
+      ctx.shadowColor='rgba(0,0,0,.25)'; ctx.shadowBlur=6; ctx.shadowOffsetY=2;
+      const g = ctx.createRadialGradient(ball.x-2,ball.y-3,1,ball.x,ball.y,R);
+      g.addColorStop(0,'#ffd166'); g.addColorStop(1,'#f0a713');
+      ctx.fillStyle=g;
+      ctx.beginPath(); ctx.arc(ball.x,ball.y,R,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function pickSlot(){
+    const total = WEIGHTS.reduce((a,b)=>a+b,0);
+    let r = Math.random()*total;
+    for(let i=0;i<WEIGHTS.length;i++){ r -= WEIGHTS[i]; if(r<=0) return i; }
+    return WEIGHTS.length-1;
+  }
+
+  function buildPath(slot){
+    const ks = SLOT_KS[slot];
+    const k  = ks[Math.floor(Math.random()*ks.length)];      // number of "right" bounces
+    const steps = Array(ROWS).fill(0).map((_,i)=> i<k ? 1 : -1);
+    for(let i=steps.length-1;i>0;i--){                        // shuffle
+      const j = Math.floor(Math.random()*(i+1));
+      [steps[i],steps[j]] = [steps[j],steps[i]];
+    }
+    const pts=[{x:CX, y:-10},{x:CX, y:TOP}];
+    let x=CX;
+    for(let i=0;i<ROWS;i++){ x += steps[i]*SX/2; pts.push({x, y: TOP + (i+1)*SY}); }
+    pts.push({x, y: FLOOR});
+    return pts;
+  }
+
+  function animate(pts, done){
+    let seg=0, t0=null;
+    const DUR = i => (i===0 ? 220 : i===pts.length-2 ? 260 : 105);
+    function frame(ts){
+      if(!t0) t0=ts;
+      const d = DUR(seg);
+      let t = Math.min(1,(ts-t0)/d);
+      const a = pts[seg], b = pts[seg+1];
+      const hop = (seg>0 && seg<pts.length-2) ? Math.sin(Math.PI*t)*7 : 0;
+      ball = { x: a.x+(b.x-a.x)*t, y: a.y+(b.y-a.y)*t - hop };
+      draw();
+      if(t>=1){
+        seg++; t0=null;
+        if(seg >= pts.length-1){ done(); return; }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim()); }
+
+  function drop(){
+    if(running) return;
+    const v = emailEl.value;
+    if(!validEmail(v)){
+      emailEl.classList.add('err');
+      errEl.textContent = 'Please enter a valid email address.';
+      emailEl.focus();
+      return;
+    }
+    emailEl.classList.remove('err'); errEl.textContent='';
+    running = true;
+    dropBtn.disabled = true;
+    dropBtn.textContent = 'Dropping…';
+    slots.forEach(s=>s.classList.remove('win'));
+
+    const slot = pickSlot();
+    animate(buildPath(slot), ()=>{
+      slots[slot].classList.add('win');
+      // >>> send the lead to your backend / ESP here <<<
+      // fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+      //   body:JSON.stringify({email:v, prize:PRIZES[slot], code:CODES[slot]})});
+      setTimeout(()=>{
+        document.getElementById('pkWinAmount').textContent = PRIZES[slot] + ' OFF';
+        document.getElementById('pkCode').textContent = CODES[slot];
+        document.getElementById('pkStep1').classList.add('hidden');
+        document.getElementById('pkStep2').classList.remove('hidden');
+        running = false;
+      }, 550);
+    });
+  }
+
+  function open(){
+    overlay.classList.remove('hidden');
+    document.getElementById('pkStep1').classList.remove('hidden');
+    document.getElementById('pkStep2').classList.add('hidden');
+    slots.forEach(s=>s.classList.remove('win'));
+    dropBtn.disabled=false; dropBtn.textContent='Drop the Ball!';
+    emailEl.value=''; errEl.textContent=''; emailEl.classList.remove('err');
+    ball=null; running=false; draw();
+  }
+  function close(){ overlay.classList.add('hidden'); }
+
+  dropBtn.addEventListener('click', drop);
+  emailEl.addEventListener('keydown', e=>{ if(e.key==='Enter') drop(); });
+  document.getElementById('pkClose').addEventListener('click', close);
+  document.getElementById('pkShop').addEventListener('click', close);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') close(); });
+  document.getElementById('pkCopy').addEventListener('click', function(){
+    const code = document.getElementById('pkCode').textContent;
+    const done = ()=>{ this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1600); };
+    if(navigator.clipboard){ navigator.clipboard.writeText(code).then(done).catch(done); }
+    else { done(); }
+  });
+
+  draw();
+  return { open, close };
+})();
+</script>
+</body>
+</html>
